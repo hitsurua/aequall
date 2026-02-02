@@ -1,0 +1,86 @@
+{
+  "Actor": {
+    "types": ["character", "npc"],
+    "templates": {
+      "base": {
+        "attributes": {
+          "cur": { "value": 0, "maitrise": false, "label": "Curiosité" },
+          "pru": { "value": 0, "maitrise": false, "label": "Prudence" },
+          "avi": { "value": 0, "maitrise": false, "label": "Avidité" },
+          "env": { "value": 0, "maitrise": false, "label": "Envie" },
+          "hp": { "value": 10, "max": 10, "label": "Points de Vie" },
+          "flux": { "value": 0, "max": 6, "label": "Flux" },
+          "qualite1": { "value": "" },
+          "qualite2": { "value": "" },
+          "defaut1": { "value": "" },
+          "defaut2": { "value": "" },
+          "conditions": { "value": "" },
+          "defense": { "value": 10, "total": 10, "label": "Défense" },
+          "init": { "value": 0 },
+          "inspiration": { "value": false }
+        },
+        "details": {
+          "biography": { "value": "" },
+          "race": { "value": "" },
+          "vocation": { "value": "" },
+          "level": { "value": 1 },
+          "xp": { "value": 0 },
+          "royaume": { "value": "" },
+          "croyances": { "value": "" },
+          "inventoryText": { "value": "" },
+          "isLocked": { "value": false },
+          "isConducteur": { "value": false },
+          "starterKitClaimed": { "value": false }
+        },
+        "currency": {
+          "gp": 0,
+          "sp": 0,
+          "cp": 0
+        },
+        "equipment": {
+          "weapon": null,
+          "armor": null,
+          "accessory": null
+        }
+      }
+    },
+    "character": {
+      "templates": ["base"]
+    },
+    "npc": {
+      "templates": ["base"]
+    }
+  },
+  "Item": {
+    "types": ["item", "feature", "spell", "weapon", "armor"],
+    "item": {
+      "description": { "value": "" },
+      "quantity": { "value": 1 },
+      "weight": { "value": 0 },
+      "price": { "value": 0 }
+    },
+    "weapon": {
+      "description": { "value": "" },
+      "quantity": { "value": 1 },
+      "weight": { "value": 0 },
+      "price": { "value": 0 },
+      "damage": { "value": "1d6" },
+      "range": { "value": "Melee" }
+    },
+    "armor": {
+      "description": { "value": "" },
+      "quantity": { "value": 1 },
+      "weight": { "value": 0 },
+      "price": { "value": 0 },
+      "ac": { "value": 0 }
+    },
+    "feature": {
+      "description": { "value": "" }
+    },
+    "spell": {
+      "description": { "value": "" },
+      "level": { "value": 1 },
+      "cost": { "value": 1 }
+    }
+  }
+}

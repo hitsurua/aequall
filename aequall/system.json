@@ -1,0 +1,22 @@
+{
+  "id": "aequall",
+  "title": "Aequall RPG",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "esmodules": ["aequall.mjs"],
+  "styles": ["css/aequall.css"],
+  "documentTypes": {
+    "Actor": {
+      "character": {},
+      "npc": {}
+    },
+    "Item": {
+      "item": {},
+      "weapon": {},
+      "armor": {}
+    }
+  }
+}

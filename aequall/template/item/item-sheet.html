@@ -1,0 +1,75 @@
+<form class="{{cssClass}} flexcol" autocomplete="off" style="background: #1a1a1a; color: #e0e0e0; padding: 10px; height: 100%; display: flex; flex-direction: column;">
+    
+    <header class="sheet-header flexrow" style="border-bottom: 2px solid #D97706; padding-bottom: 10px; margin-bottom: 10px; align-items: center;">
+        <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" width="64" height="64" style="border: 1px solid #D97706; border-radius: 5px; background: #000;"/>
+        <div class="header-fields" style="flex: 1; margin-left: 15px;">
+            <h1 style="margin: 0;">
+                <input name="name" type="text" value="{{item.name}}" placeholder="Nom de l'objet" style="font-family: 'Cinzel', serif; font-size: 24px; color: #D97706; background: transparent; border: none; border-bottom: 1px solid #555; width: 100%;"/>
+            </h1>
+            <div style="font-size: 12px; color: #aaa; font-style: italic; margin-top: 5px; text-transform: uppercase;">
+                Type : {{localizeType item.type}}
+            </div>
+        </div>
+    </header>
+
+    <div class="item-stats" style="display: flex; gap: 10px; margin-bottom: 15px; background: #111; padding: 10px; border: 1px solid #333; border-radius: 5px;">
+        <div style="flex: 1; text-align: center;">
+            <label style="color: #D97706; font-weight: bold; display: block; margin-bottom: 3px;">💰 Prix (PO)</label>
+            <input type="number" name="system.price.value" value="{{system.price.value}}" style="width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #555;"/>
+        </div>
+        <div style="flex: 1; text-align: center;">
+            <label style="color: #94a3b8; font-weight: bold; display: block; margin-bottom: 3px;">⚖️ Poids (kg)</label>
+            <input type="number" step="0.1" name="system.weight.value" value="{{system.weight.value}}" style="width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #555;"/>
+        </div>
+        <div style="flex: 1; text-align: center;">
+            <label style="color: #10b981; font-weight: bold; display: block; margin-bottom: 3px;">📦 Quantité</label>
+            <input type="number" name="system.quantity.value" value="{{system.quantity.value}}" style="width: 100%; text-align: center; background: #000; color: #fff; border: 1px solid #555;"/>
+        </div>
+    </div>
+
+    <!-- NOUVEAU : CHAMP MACRO LIÉE -->
+    <div style="margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px dashed #555; padding: 10px; border-radius: 5px;">
+        <label style="color: #a855f7; font-weight: bold; display: block; margin-bottom: 3px;"><i class="fas fa-code"></i> Macro Liée (Nom exact)</label>
+        <input type="text" name="flags.aequall.macroName" value="{{item.flags.aequall.macroName}}" placeholder="Ex: Soin Majeur" style="width: 100%; background: #000; color: #d8b4fe; border: 1px solid #555;"/>
+        <p style="font-size: 10px; color: #888; margin-top: 3px; font-style: italic;">Si rempli, le bouton "Utiliser" du HUD lancera cette macro.</p>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        {{#if (eq item.type "weapon")}}
+        <div style="background: rgba(185, 28, 28, 0.1); border: 1px solid #991b1b; padding: 10px; border-radius: 5px;">
+            <label style="color: #ef4444; font-weight: bold;">⚔️ Formule de Dégâts</label>
+            <input type="text" name="system.damage.value" value="{{system.damage.value}}" placeholder="ex: 1d6 + @attributes.avi.total" style="width: 100%; margin-top: 5px; background: #000; color: #fff; border: 1px solid #991b1b;"/>
+        </div>
+        {{/if}}
+
+        {{#if (eq item.type "armor")}}
+        <div style="background: rgba(30, 58, 138, 0.1); border: 1px solid #1e3a8a; padding: 10px; border-radius: 5px;">
+            <label style="color: #60a5fa; font-weight: bold;">🛡️ Bonus de CA (Défense)</label>
+            <input type="number" name="system.ac.value" value="{{system.ac.value}}" style="width: 100%; margin-top: 5px; background: #000; color: #fff; border: 1px solid #1e3a8a; text-align: center;"/>
+        </div>
+        {{/if}}
+
+        {{#if (eq item.type "spell")}}
+        <div style="background: rgba(217, 119, 6, 0.1); border: 1px solid #D97706; padding: 10px; border-radius: 5px;">
+            <label style="color: #f59e0b; font-weight: bold;">🔥 Coût en Flux (Dés)</label>
+            <input type="number" name="system.cost.value" value="{{system.cost.value}}" style="width: 100%; margin-top: 5px; background: #000; color: #fff; border: 1px solid #D97706; text-align: center;"/>
+        </div>
+        {{/if}}
+        
+        <!-- Pour les objets génériques (ex: Potion), on affiche aussi le champ dégâts qui sert pour les soins/effets -->
+        {{#if (eq item.type "item")}}
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #059669; padding: 10px; border-radius: 5px;">
+            <label style="color: #10b981; font-weight: bold;">🧪 Formule (Soin/Effet)</label>
+            <input type="text" name="system.damage.value" value="{{system.damage.value}}" placeholder="ex: 2d4 + 2 (pour soin)" style="width: 100%; margin-top: 5px; background: #000; color: #fff; border: 1px solid #059669;"/>
+        </div>
+        {{/if}}
+    </div>
+
+    <div style="flex: 1; display: flex; flex-direction: column;">
+        <label style="color: #aaa; font-weight: bold; border-bottom: 1px solid #444; margin-bottom: 5px;">📜 Description</label>
+        <div class="editor-container" style="flex: 1; background: #111; padding: 5px; border: 1px solid #333;">
+            {{editor system.description.value target="system.description.value" button=true owner=owner editable=editable}}
+        </div>
+    </div>
+
+</form>

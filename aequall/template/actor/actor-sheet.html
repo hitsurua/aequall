@@ -1,0 +1,401 @@
+<form class="{{cssClass}} game-ui" autocomplete="off">
+    <header class="sheet-header">
+        <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}"/>
+        <div class="header-details">
+            
+            <div style="font-family: 'Cinzel', serif; font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: -5px;">
+                Registre d'Aequall
+            </div>
+
+            <div class="name-row" style="display: flex; justify-content: space-between;">
+                <div style="flex:1; display:flex; align-items:center; gap:10px;">
+                    <div class="header-logo-container">
+                        <img class="sheet-logo" src="systems/aequall/assets/logo.webp" alt="Aequall" title="Aequall RPG" onerror="this.style.display='none'"/>
+                    </div>
+                    
+                    <h1 class="charname">
+                        <input name="name" type="text" value="{{actor.name}}" placeholder="Nom du Personnage" {{#if isLocked}}readonly style="border:none;"{{/if}}/>
+                    </h1>
+                    <div class="inspiration-box">
+                        <span class="label-text">Inspiration</span>
+                        <label class="star-label">
+                            <input type="checkbox" name="system.attributes.inspiration.value" {{checked system.attributes.inspiration.value}}/>
+                            <i class="fas fa-star"></i>
+                        </label>
+                    </div>
+                </div>
+
+                <a class="rules-btn" title="Résumé des Règles" style="margin-left:10px; font-size:18px; color:#60a5fa; cursor:pointer;">
+                    <i class="fas fa-question-circle"></i>
+                </a>
+
+                <a class="lock-btn" title="{{#if isLocked}}Déverrouiller la fiche{{else}}Verrouiller la fiche{{/if}}" style="margin-left:10px; font-size:18px; color:{{#if isLocked}}#ef4444{{else}}#aaa{{/if}};">
+                    <i class="fas {{#if isLocked}}fa-lock{{else}}fa-lock-open{{/if}}"></i>
+                </a>
+            </div>
+            
+            <div class="char-info-grid">
+                <div class="info-group">
+                    <label>Peuple</label>
+                    <select name="system.details.race.value" {{#unless canEditIdentity}}disabled{{/unless}}>
+                        <option value="">-- Choisir --</option>
+                        {{selectOptions races selected=system.details.race.value localize=false}}
+                    </select>
+                    <!-- Affichage du bonus racial -->
+                    <div style="font-size: 10px; color: #10b981; margin-top: 2px; font-style: italic;">{{raceDescription}}</div>
+                </div>
+                
+                <div class="info-group">
+                    <label>Vocation 
+                        {{#unless system.details.starterKitClaimed}}
+                            <a class="add-starter-kit" title="Kit Départ"><i class="fas fa-gift"></i></a>
+                        {{/unless}}
+                    </label>
+                    <select name="system.details.vocation.value" {{#unless canEditIdentity}}disabled{{/unless}}>
+                        <option value="">-- Choisir --</option>
+                        {{selectOptions vocations selected=system.details.vocation.value localize=false}}
+                    </select>
+                </div>
+
+                
+
+                <div class="info-group small">
+                    <label>Niveau</label>
+                    <input type="number" name="system.details.level.value" value="{{system.details.level.value}}" {{#if isLocked}}readonly{{/if}}/>
+                </div>
+                <div class="info-group small">
+                    <label>XP</label>
+                    <input type="number" name="system.details.xp.value" value="{{system.details.xp.value}}"/>
+                </div>
+
+                {{#if @root.user.isGM}}
+                <div class="info-group" style="background: rgba(185, 28, 28, 0.2); border: 1px solid #7f1d1d; padding: 5px;">
+                    <label style="color: #f87171;">STATUT SECRET (MJ)</label>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="checkbox" name="system.details.isConducteur.value" {{checked system.details.isConducteur.value}}/>
+                        <span style="font-size: 12px; color: #fff;">Conducteur (Magie)</span>
+                    </div>
+                </div>
+                {{/if}}
+
+            </div>
+        </div>
+    </header>
+
+    <nav class="sheet-tabs tabs" data-group="primary">
+        <a class="item" data-tab="status"><i class="fas fa-heartbeat"></i> Statut</a>
+        <a class="item" data-tab="inventory"><i class="fas fa-suitcase"></i> Inventaire & Équipement</a>
+        <a class="item" data-tab="grimoire"><i class="fas fa-scroll"></i> Grimoire</a>
+        <a class="item" data-tab="biography"><i class="fas fa-book"></i> Biographie</a>
+    </nav>
+
+    <section class="sheet-body">
+
+        <div class="tab status" data-group="primary" data-tab="status">
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                <div class="points-tracker {{#if (lt pointsAvailable 0)}}overload{{/if}}">
+                    <i class="fas fa-coins"></i> Points Dispo : <strong>{{pointsAvailable}}</strong>
+                </div>
+            </div>
+
+            <div class="combat-bar">
+                <div class="combat-box health">
+                    <div class="health-fill" style="width: {{hpPercent}}%;"></div>
+                    <div class="health-content">
+                        <label>PV</label>
+                        <div class="resource-row">
+                            <input type="number" step="1" name="system.attributes.hp.value" value="{{system.attributes.hp.value}}" data-dtype="Number"/>
+                            <span class="sep">/</span>
+                            <input type="number" value="{{derivedMaxHp}}" readonly style="background:rgba(0,0,0,0.3); color:#aaa; border:none; width:40px;"/>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="combat-box flux">
+                    <label>Flux <a class="rest-btn"><i class="fas fa-undo-alt"></i></a></label>
+                    <div class="resource-row">
+                        <input type="number" step="1" name="system.attributes.flux.value" value="{{system.attributes.flux.value}}" data-dtype="Number"/>
+                        <span class="unit">d6</span>
+                    </div>
+                </div>
+
+                <div class="combat-box def clickable rollable" data-roll="1d20 + @attributes.defense.total" data-label="Défense">
+                    <label>Défense (CA)</label>
+                    <span class="large-value">{{derivedDefense}}</span>
+                </div>
+
+                <div class="combat-box init">
+                    <label>Init</label>
+                    <span class="large-value">{{derivedInit}}</span>
+                </div>
+            </div>
+
+            <h2 class="section-divider">Les 4 Piliers (Survolez pour voir l'effet)</h2>
+            <div class="pillars-container">
+                <div class="pillar-card cur">
+                    <div class="pillar-header rollable" title="Magie, Savoir, Fouille, Utilisation d'Artefacts" draggable="true" data-roll="1d20 + @attributes.cur.total" data-label="Curiosité">CURIOSITÉ</div>
+                    <div class="pillar-value rollable" data-roll="1d20 + @attributes.cur.total" data-label="Curiosité">{{system.attributes.cur.total}}</div>
+                    <div class="pillar-controls">
+                        {{#unless isLocked}}<a class="stat-control minus" data-target="system.attributes.cur.value"><i class="fas fa-minus"></i></a>{{/unless}}
+                        <span class="base-val">{{system.attributes.cur.value}}</span>
+                        {{#if (and (not isLocked) (gt pointsAvailable 0))}}
+                            <a class="stat-control plus" data-target="system.attributes.cur.value"><i class="fas fa-plus"></i></a>
+                        {{/if}}
+                    </div>
+                    <div class="pillar-check">
+                        <label>Maîtrise</label>
+                        <input type="checkbox" name="system.attributes.cur.maitrise" {{checked system.attributes.cur.maitrise}} {{#unless canEditMastery}}disabled{{/unless}}/>
+                    </div>
+                </div>
+
+                <div class="pillar-card pru">
+                    <div class="pillar-header rollable" title="Tactique, Soins médicaux, Précision (Armes Légères), Défense" draggable="true" data-roll="1d20 + @attributes.pru.total" data-label="Prudence">PRUDENCE</div>
+                    <div class="pillar-value rollable" data-roll="1d20 + @attributes.pru.total" data-label="Prudence">{{system.attributes.pru.total}}</div>
+                    <div class="pillar-controls">
+                        {{#unless isLocked}}<a class="stat-control minus" data-target="system.attributes.pru.value"><i class="fas fa-minus"></i></a>{{/unless}}
+                        <span class="base-val">{{system.attributes.pru.value}}</span>
+                        {{#if (and (not isLocked) (gt pointsAvailable 0))}}
+                            <a class="stat-control plus" data-target="system.attributes.pru.value"><i class="fas fa-plus"></i></a>
+                        {{/if}}
+                    </div>
+                    <div class="pillar-check">
+                        <label>Maîtrise</label>
+                        <input type="checkbox" name="system.attributes.pru.maitrise" {{checked system.attributes.pru.maitrise}} {{#unless canEditMastery}}disabled{{/unless}}/>
+                    </div>
+                </div>
+
+                <div class="pillar-card avi">
+                    <div class="pillar-header rollable" title="Force Brute, Armes Lourdes, Intimidation, Résistance Physique" draggable="true" data-roll="1d20 + @attributes.avi.total" data-label="Avidité">AVIDITÉ</div>
+                    <div class="pillar-value rollable" data-roll="1d20 + @attributes.avi.total" data-label="Avidité">{{system.attributes.avi.total}}</div>
+                    <div class="pillar-controls">
+                        {{#unless isLocked}}<a class="stat-control minus" data-target="system.attributes.avi.value"><i class="fas fa-minus"></i></a>{{/unless}}
+                        <span class="base-val">{{system.attributes.avi.value}}</span>
+                        {{#if (and (not isLocked) (gt pointsAvailable 0))}}
+                            <a class="stat-control plus" data-target="system.attributes.avi.value"><i class="fas fa-plus"></i></a>
+                        {{/if}}
+                    </div>
+                    <div class="pillar-check">
+                        <label>Maîtrise</label>
+                        <input type="checkbox" name="system.attributes.avi.maitrise" {{checked system.attributes.avi.maitrise}} {{#unless canEditMastery}}disabled{{/unless}}/>
+                    </div>
+                </div>
+
+                <div class="pillar-card env">
+                    <div class="pillar-header rollable" title="Charisme, Bluff, Tir à Distance (Arc/Fusil), Agilité, Réflexes" draggable="true" data-roll="1d20 + @attributes.env.total" data-label="Envie">ENVIE</div>
+                    <div class="pillar-value rollable" data-roll="1d20 + @attributes.env.total" data-label="Envie">{{system.attributes.env.total}}</div>
+                    <div class="pillar-controls">
+                        {{#unless isLocked}}<a class="stat-control minus" data-target="system.attributes.env.value"><i class="fas fa-minus"></i></a>{{/unless}}
+                        <span class="base-val">{{system.attributes.env.value}}</span>
+                        {{#if (and (not isLocked) (gt pointsAvailable 0))}}
+                            <a class="stat-control plus" data-target="system.attributes.env.value"><i class="fas fa-plus"></i></a>
+                        {{/if}}
+                    </div>
+                    <div class="pillar-check">
+                        <label>Maîtrise</label>
+                        <input type="checkbox" name="system.attributes.env.maitrise" {{checked system.attributes.env.maitrise}} {{#unless canEditMastery}}disabled{{/unless}}/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="create-char-btn">
+                {{#if isCreated}}
+                    <button type="button" class="summary-btn" style="background:#2563eb; color:white; border:none; padding:5px; border-radius:3px;">
+                        <i class="fas fa-eye"></i> Voir le résumé
+                    </button>
+                {{else}}
+                    <button type="button" class="create-char-btn" style="background:#D97706; color:white; border:none; padding:5px; border-radius:3px;">
+                        <i class="fas fa-magic"></i> Créer Personnage
+                    </button>
+                {{/if}}
+            </div>
+        </div>
+
+        <div class="tab inventory" data-group="primary" data-tab="inventory">
+            
+            <div class="currency-bar flexrow" style="display: flex; gap: 15px; margin-bottom: 10px; align-items: center;">
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <label style="margin-right: 5px; font-weight: bold; color: #D97706;"><i class="fas fa-coins"></i> Or (PO)</label>
+                    <input type="number" name="system.currency.gp" value="{{system.currency.gp}}" style="width: 100%; text-align: center;" {{#unless canEditCurrency}}readonly{{/unless}}/>
+                </div>
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <label style="margin-right: 5px; font-weight: bold; color: #94a3b8;">Argent (PA)</label>
+                    <input type="number" name="system.currency.sp" value="{{system.currency.sp}}" style="width: 100%; text-align: center;" {{#unless canEditCurrency}}readonly{{/unless}}/>
+                </div>
+                <div style="display: flex; align-items: center; flex: 1;">
+                    <label style="margin-right: 5px; font-weight: bold; color: #b45309;">Cuivre (PC)</label>
+                    <input type="number" name="system.currency.cp" value="{{system.currency.cp}}" style="width: 100%; text-align: center;" {{#unless canEditCurrency}}readonly{{/unless}}/>
+                </div>
+            </div>
+
+            <div class="encumbrance-bar-container {{#if isOverencumbered}}overload{{/if}}">
+                <div class="encumbrance-label"><i class="fas fa-weight-hanging"></i> Poids: {{totalWeight}} / {{maxWeight}} kg</div>
+                <div class="encumbrance-bar"><div class="encumbrance-fill" style="width: {{weightPct}}%;"></div></div>
+            </div>
+
+            <h2 class="section-divider" style="margin-top: 10px;">Équipement Porté (Glissez les objets ici)</h2>
+            <div class="equipment-grid" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <div class="equip-slot item" data-slot="weapon" style="flex: 1; background: rgba(0,0,0,0.6); border: 2px dashed {{#if equipped.weapon}}#10b981{{else}}#555{{/if}}; border-radius: 5px; padding: 5px; text-align: center; position: relative; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;" {{#if equipped.weapon}}data-item-id="{{equipped.weapon.id}}"{{/if}}>
+                    <div style="font-size: 10px; color: #aaa; position: absolute; top: 2px;">ARME (Cliquez pour attaquer)</div>
+                    {{#if equipped.weapon}}
+                        <img src="{{equipped.weapon.img}}" class="item-info clickable" data-item-id="{{equipped.weapon.id}}" style="width: 40px; height: 40px; border: none; margin-top: 10px;" title="Cliquez pour attaquer !"/>
+                        <span style="font-weight: bold; color: #fff; font-size: 12px; margin-top: 5px;">{{equipped.weapon.name}}</span>
+                        <a class="unequip-btn" data-slot="weapon" style="position: absolute; top: 2px; right: 5px; color: #ef4444;"><i class="fas fa-times"></i></a>
+                    {{else}}
+                        <i class="fas fa-khanda" style="font-size: 30px; color: #444; margin-top: 10px;"></i>
+                    {{/if}}
+                </div>
+
+                <div class="equip-slot" data-slot="armor" style="flex: 1; background: rgba(0,0,0,0.6); border: 2px dashed {{#if equipped.armor}}#60a5fa{{else}}#555{{/if}}; border-radius: 5px; padding: 5px; text-align: center; position: relative; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="font-size: 10px; color: #aaa; position: absolute; top: 2px;">ARMURE (CA)</div>
+                    {{#if equipped.armor}}
+                        <img src="{{equipped.armor.img}}" style="width: 40px; height: 40px; border: none; margin-top: 10px;"/>
+                        <span style="font-weight: bold; color: #fff; font-size: 12px; margin-top: 5px;">{{equipped.armor.name}}</span>
+                        <a class="unequip-btn" data-slot="armor" style="position: absolute; top: 2px; right: 5px; color: #ef4444;"><i class="fas fa-times"></i></a>
+                    {{else}}
+                        <i class="fas fa-shield-alt" style="font-size: 30px; color: #444; margin-top: 10px;"></i>
+                    {{/if}}
+                </div>
+
+                <div class="equip-slot" data-slot="accessory" style="flex: 1; background: rgba(0,0,0,0.6); border: 2px dashed {{#if equipped.accessory}}#D97706{{else}}#555{{/if}}; border-radius: 5px; padding: 5px; text-align: center; position: relative; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                    <div style="font-size: 10px; color: #aaa; position: absolute; top: 2px;">ACCESSOIRE / TALENT</div>
+                    {{#if equipped.accessory}}
+                        <img src="{{equipped.accessory.img}}" style="width: 40px; height: 40px; border: none; margin-top: 10px;"/>
+                        <span style="font-weight: bold; color: #fff; font-size: 12px; margin-top: 5px;">{{equipped.accessory.name}}</span>
+                        <a class="unequip-btn" data-slot="accessory" style="position: absolute; top: 2px; right: 5px; color: #ef4444;"><i class="fas fa-times"></i></a>
+                    {{else}}
+                        <i class="fas fa-star" style="font-size: 30px; color: #444; margin-top: 10px;"></i>
+                    {{/if}}
+                </div>
+            </div>
+
+            <div class="item-list-container">
+                <div class="list-header">
+                    <span class="col-img">Img</span>
+                    <span class="col-name">Objets (Sac à dos)</span>
+                    <span class="col-weight">⚖️</span>
+                    <span class="col-controls">
+                        {{#if canCreateOrEditItems}}
+                            <a class="item-create" data-type="weapon" title="Arme"><i class="fas fa-khanda"></i></a>
+                            <a class="item-create" data-type="armor" title="Armure"><i class="fas fa-shield-alt"></i></a>
+                            <a class="item-create" data-type="item" title="Objet"><i class="fas fa-box-open"></i></a>
+                        {{/if}}
+                    </span>
+                </div>
+                <div class="list-body">
+                    {{#each gear as |item id|}}
+                    <div class="item list-row" data-item-id="{{item.id}}" draggable="true">
+                        <div class="col-img item-info clickable"><img src="{{item.img}}" width="24" height="24"/></div>
+                        <div class="col-name item-info clickable">{{item.name}}</div>
+                        <div class="col-weight"><input type="text" class="small-input" value="{{item.system.weight.value}}" data-dtype="Number"/></div>
+                        <div class="col-controls">
+                            {{#if canCreateOrEditItems}}
+                                <a class="item-edit"><i class="fas fa-edit"></i></a>
+                            {{/if}}
+                            <a class="item-delete"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+            <div class="notebook-container" style="margin-top:15px;">
+                <label class="notebook-label">Vrac</label>
+                <textarea class="notebook-area" name="system.details.inventoryText.value" rows="10">{{system.details.inventoryText.value}}</textarea>
+            </div>
+        </div>
+
+        <div class="tab grimoire" data-group="primary" data-tab="grimoire">
+             <div class="item-list-container">
+                <div class="list-header"><span class="col-name">Talents</span>
+                    {{#if canCreateOrEditItems}}
+                        <a class="item-create" data-type="feature"><i class="fas fa-plus"></i></a>
+                    {{/if}}
+                </div>
+                <div class="list-body">
+                    {{#each features as |item id|}}
+                    <div class="item list-row" data-item-id="{{item.id}}" draggable="true">
+                        <div class="col-img item-info clickable"><img src="{{item.img}}" width="24"/></div>
+                        <div class="col-name item-info clickable">{{item.name}}</div>
+                        <div class="col-controls">
+                            {{#if canCreateOrEditItems}}
+                                <a class="item-edit"><i class="fas fa-edit"></i></a>
+                            {{/if}}
+                            <a class="item-delete"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+            <div class="item-list-container" style="margin-top:10px;">
+                <div class="list-header magic"><span class="col-name">Sorts</span>
+                    {{#if canCreateOrEditItems}}
+                        <a class="item-create" data-type="spell"><i class="fas fa-plus"></i></a>
+                    {{/if}}
+                </div>
+                <div class="list-body">
+                    {{#each spells as |item id|}}
+                    <div class="item list-row" data-item-id="{{item.id}}" draggable="true">
+                        <div class="col-img item-info clickable"><img src="{{item.img}}" width="24"/></div>
+                        <div class="col-name item-info clickable">{{item.name}}</div>
+                        <div class="col-controls">
+                            {{#if canCreateOrEditItems}}
+                                <a class="item-edit"><i class="fas fa-edit"></i></a>
+                            {{/if}}
+                            <a class="item-delete"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+
+        <div class="tab biography" data-group="primary" data-tab="biography">
+            <div class="bio-grid">
+                <div class="form-group half">
+                    <label>Qualités</label>
+                    <div class="trait-group">
+                        <select name="system.attributes.qualite1.value" {{#if isLocked}}disabled{{/if}}>
+                            <option value="">-- Choisir --</option>
+                            {{selectOptions qualitiesList selected=system.attributes.qualite1.value valueAttr="key" labelAttr="label" localize=false}}
+                        </select>
+                        <div class="trait-desc" style="font-size:12px; color:#10b981; font-style:italic;">{{q1Desc}}</div>
+                    </div>
+                    <div class="trait-group" style="margin-top:5px;">
+                        <select name="system.attributes.qualite2.value" {{#if isLocked}}disabled{{/if}}>
+                            <option value="">-- Choisir --</option>
+                            {{selectOptions qualitiesList selected=system.attributes.qualite2.value valueAttr="key" labelAttr="label" localize=false}}
+                        </select>
+                        <div class="trait-desc" style="font-size:12px; color:#10b981; font-style:italic;">{{q2Desc}}</div>
+                    </div>
+                </div>
+
+                <div class="form-group half">
+                    <label>Défauts</label>
+                    <div class="trait-group">
+                        <select name="system.attributes.defaut1.value" {{#if isLocked}}disabled{{/if}}>
+                            <option value="">-- Choisir --</option>
+                            {{selectOptions flawsList selected=system.attributes.defaut1.value valueAttr="key" labelAttr="label" localize=false}}
+                        </select>
+                        <div class="trait-desc" style="font-size:12px; color:#ef4444; font-style:italic;">{{d1Desc}}</div>
+                    </div>
+                    <div class="trait-group" style="margin-top:5px;">
+                        <select name="system.attributes.defaut2.value" {{#if isLocked}}disabled{{/if}}>
+                            <option value="">-- Choisir --</option>
+                            {{selectOptions flawsList selected=system.attributes.defaut2.value valueAttr="key" labelAttr="label" localize=false}}
+                        </select>
+                        <div class="trait-desc" style="font-size:12px; color:#ef4444; font-style:italic;">{{d2Desc}}</div>
+                    </div>
+                </div>
+
+                <div class="form-group full">
+                    <label>Croyances</label>
+                    <textarea name="system.details.croyances.value" rows="3">{{system.details.croyances.value}}</textarea>
+                </div>
+                <div class="form-group full">
+                    <label>Notes</label>
+                    <div class="editor-container">{{editor system.details.biography.value target="system.details.biography.value" button=true owner=owner editable=editable}}</div>
+                </div>
+            </div>
+        </div>
+    </section>
+</form>

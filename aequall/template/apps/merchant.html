@@ -1,0 +1,75 @@
+<form class="merchant-shop" autocomplete="off" style="background: #1a1a1a; color: #e0e0e0; padding: 10px; height: 100%; display: flex; flex-direction: column;">
+    
+    <div style="border-bottom: 2px solid #D97706; padding-bottom: 10px; margin-bottom: 10px; text-align: center;">
+        <h1 style="font-family:'Cinzel'; color:#D97706; margin: 0; font-size: 24px;">{{#if isConfigMode}}Comptoir Commercial{{else}}{{shopName}}{{/if}}</h1>
+        {{#unless isConfigMode}}
+        <div style="font-size: 12px; color: #aaa; margin-top: 5px;">
+            <i class="fas fa-store"></i> Caisse du Marchand : <span style="color:#D97706; font-weight:bold;">{{shopGold}} PO</span> <span style="color:#94a3b8; font-weight:bold;">{{shopSilver}} PA</span> <span style="color:#b45309; font-weight:bold;">{{shopCopper}} PC</span>
+        </div>
+        {{/unless}}
+    </div>
+
+    {{#if isConfigMode}}
+    <div style="text-align: center; margin-bottom: 10px;">
+        <label style="color: #aaa; font-size: 12px; font-weight: bold;">1. LE MARCHAND (PNJ avec inventaire)</label>
+        <select id="shop-actor-select" style="width: 100%; padding: 5px; margin-top: 5px; background: #333; color: white; border: 1px solid #555;">
+            <option value="">-- Choisir un PNJ --</option>
+            {{#each npcs}}
+            <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 10px;">
+        <label style="color: #aaa; font-size: 12px; font-weight: bold;">2. L'ACHETEUR (Joueur)</label>
+        <select id="buyer-select" style="width: 100%; padding: 5px; margin-top: 5px; background: #333; color: white; border: 1px solid #555;">
+            <option value="">-- Choisir un Personnage --</option>
+            {{#each buyers}}
+            <option value="{{this.id}}">{{this.name}}</option>
+            {{/each}}
+        </select>
+    </div>
+
+    <!-- NOUVEAU : AJUSTEMENT PRIX EN HTML -->
+    <div class="form-group" style="margin: 10px 0; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px;">
+        <label style="font-weight:bold; display:block; margin-bottom:3px; font-size:12px; color:#aaa;">Ajustement Prix (%)</label>
+        <div class="flexrow" style="display:flex; align-items:center;">
+            <input type="number" id="price-modifier" value="{{priceModifier}}" style="flex:3; background:#222; border:1px solid #444; color:white; padding:5px;" placeholder="0">
+            <span style="flex:1; line-height: 24px; margin-left: 5px;">%</span>
+        </div>
+        <p class="notes" style="font-size: 11px; color: #aaa; margin-top:2px;">Ex: 25 (+25% Touriste), -50 (-50% Ami)</p>
+    </div>
+
+    <button id="open-shop-for-players" style="background: linear-gradient(45deg, #D97706, #b45309); color: white; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; border-radius: 4px;">
+        <i class="fas fa-door-open"></i> OUVRIR LE MAGASIN
+    </button>
+    {{else}}
+
+    <!-- UI MARCHANDISE -->
+    <div class="merchant-grid" style="flex: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid #333; padding: 5px; border-radius: 4px; background: rgba(0,0,0,0.2);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
+            {{#each shopItems as |item|}}
+            <div class="item-card" style="background: #222; border: 1px solid #444; border-radius: 5px; padding: 8px; text-align: center; position: relative;">
+                <div class="stock-badge" style="position: absolute; top: 5px; right: 5px; background: #2563eb; color: white; padding: 2px 5px; font-size: 11px; font-weight: bold;">
+                    Stock: {{item.qty}}
+                </div>
+                <img src="{{item.img}}" style="width: 40px; height: 40px; border: none;">
+                <h4 style="margin: 5px 0 0 0; color: #fff; font-size: 12px;">{{item.name}}</h4>
+                <div style="color: #D97706; font-weight: bold; margin: 5px 0;">{{item.displayPrice}}</div>
+                <button class="buy-btn" data-item-id="{{item.id}}" style="background: #10b981; color: #fff; border: none; padding: 5px; width: 100%; cursor: pointer; font-weight: bold;">
+                    ACHETER
+                </button>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+
+    <div class="sell-drop-zone" style="background: rgba(0,0,0,0.5); border: 2px dashed #D97706; border-radius: 5px; padding: 15px; margin-top: auto; text-align: center; color: #aaa;">
+        <i class="fas fa-hand-holding-usd" style="font-size: 24px; margin-bottom: 5px; display: block;"></i>
+        Glissez un objet ici pour VENDRE (50% du prix)
+        <div style="margin-top: 5px; font-size: 12px; color: #D97706;">
+            Caisse Joueur : {{buyerGold}} PO {{buyerSilver}} PA {{buyerCopper}} PC
+        </div>
+    </div>
+    {{/if}}
+</form>

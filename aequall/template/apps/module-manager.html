@@ -1,0 +1,31 @@
+<div class="module-manager-container" style="display: flex; flex-direction: column; height: 100%; gap: 10px; font-family: 'Signika', sans-serif; padding: 5px;">
+    
+    <!-- Recherche -->
+    <div style="flex: 0 0 auto;">
+        <input type="text" id="mod-search" placeholder="🔍 Rechercher un module..." style="background: #222; color: #fff; border: 1px solid #444; padding: 10px; border-radius: 4px; width: 100%; box-sizing: border-box;">
+    </div>
+
+    <!-- Liste -->
+    <div class="module-list" style="flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid #444; border-radius: 4px; padding: 5px;">
+        {{#each modules}}
+        <div class="module-row" data-id="{{this.id}}" style="display: flex; align-items: center; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s;">
+            <input type="checkbox" id="chk-{{this.id}}" name="{{this.id}}" {{#if this.active}}checked{{/if}} style="margin-right: 15px; transform: scale(1.2); cursor: pointer;">
+            
+            <label for="chk-{{this.id}}" style="cursor: pointer; flex: 1; display: flex; flex-direction: column;">
+                <span class="mod-title" style="font-weight: bold; font-size: 1.1em; color: {{#if this.active}}#e0e0e0{{else}}#888{{/if}};">{{this.title}}</span>
+                <span style="font-size: 0.8em; color: #666;">
+                    <span style="background:#333; padding: 1px 4px; border-radius: 3px;">{{this.version}}</span> 
+                    {{this.id}}
+                </span>
+            </label>
+        </div>
+        {{/each}}
+    </div>
+
+    <!-- Pied de page -->
+    <div style="flex: 0 0 auto; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+        <button type="submit" style="background: linear-gradient(180deg, #d97706, #b45309); color: white; font-weight: bold; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 1.1em;">
+            <i class="fas fa-save"></i> SAUVEGARDER ET RECHARGER
+        </button>
+    </div>
+</div>

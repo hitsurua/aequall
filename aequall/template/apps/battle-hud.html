@@ -1,0 +1,202 @@
+<div class="aequall-battle-hud" style="position: relative; color: #e0e0e0; font-family: 'Signika', sans-serif; display: flex; flex-direction: column; gap: 15px; padding: 15px; height: 100%; background: #1a1a1a; border-radius: 8px; border: 1px solid #444; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+
+    <!-- OVERLAY VERROUILLAGE MJ -->
+    {{#if isLockedByGM}}
+    <div class="gm-lock-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:999; color:white; font-family:'Cinzel'; text-align:center; border-radius: 8px;">
+        <div>
+            <h2 style="color:#ef4444; border-bottom:1px solid #ef4444; padding-bottom:5px;">🔒 EN ATTENTE DU MJ</h2>
+            <p style="font-size:0.9em; color:#ccc;">Validation des dégâts en cours...</p>
+            <i class="fas fa-spinner fa-spin" style="font-size:24px; margin-top:10px; color:#D97706;"></i>
+        </div>
+    </div>
+    {{/if}}
+
+    <!-- BOUTON INFO / RÈGLES -->
+    <div class="hud-info-icon" style="position: absolute; top: 10px; right: 10px; z-index: 10; cursor: help;">
+        <i class="fas fa-question-circle" style="color: #60a5fa; font-size: 20px;"></i>
+        <div class="hud-tooltip" style="display: none; position: absolute; top: 30px; right: 0; width: 280px; background: rgba(0,0,0,0.95); border: 1px solid #60a5fa; padding: 15px; border-radius: 5px; font-size: 13px; color: #fff; text-align: left; box-shadow: 0 4px 8px black; line-height: 1.5; z-index: 100;">
+            <strong style="color: #60a5fa; display: block; margin-bottom: 5px;">Raccourcis Clavier</strong>
+            • T : Cibler un token<br>
+            • Glisser Objet : Vers macro ou chat<br>
+            • Double Clic Token : Ouvre fiche<br>
+            <hr style="border-color: #444;">
+            <strong style="color: #eab308;">États Spéciaux</strong><br>
+            • Aveuglé : 2 dés, garder le pire (Défaveur)<br>
+            • Paralysé : Aucune action possible<br><hr style="border-color: #444;">
+            <strong style="color: #22c55e;">Économie d'actions</strong><br>
+            • 1 Action : attaquer OU utiliser un objet<br>
+            • 1 Déplacement : limité en mètres (reste affiché)
+        </div>
+    </div>
+
+    {{#if combatActive}}
+    <!-- ORDRE DES TOURS -->
+    <div class="turn-order" style="background:#111; border:1px solid #333; border-radius:6px; padding:10px;">
+      <div style="font-size:12px; color:#ccc; margin-bottom:6px;">
+        <b>Tour :</b> {{currentName}} &nbsp; → &nbsp; <b>Prochain :</b> {{nextName}}
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        {{#each turnOrder as |t|}}
+          <div style="display:flex; align-items:center; gap:6px; padding:4px 6px; border-radius:999px; border:1px solid {{#if t.active}}#D97706{{else}}#333{{/if}}; background: {{#if t.active}}rgba(217,119,6,0.15){{else}}rgba(0,0,0,0.25){{/if}};">
+            <img src="{{t.img}}" style="width:18px; height:18px; border-radius:50%; object-fit:cover;">
+            <span style="font-size:11px; {{#if t.active}}color:#D97706{{else}}color:#aaa{{/if}};">{{t.name}}</span>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- 1. EN-TÊTE : BARRES DE VIE & FLUX --> : BARRES DE VIE & FLUX -->
+    <div class="hud-header" style="display: flex; gap: 10px; align-items: center;">
+        <img class="char-thumb" src="{{actor.img}}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #D97706; object-fit: cover;">
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px;">
+                <span style="color: #ef4444; font-weight: bold;">PV {{hpVal}} / {{hpMax}}</span>
+                <span style="color: #3b82f6; font-weight: bold;">FLUX {{fluxVal}}</span>
+            </div>
+            <div class="bar-container" style="height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 4px;">
+                <div class="hp-bar" style="width: {{hpPercent}}%; height: 100%; background: #ef4444; transition: width 0.5s;"></div>
+            </div>
+            <div class="bar-container" style="height: 6px; background: #333; border-radius: 3px; overflow: hidden;">
+                <div class="flux-bar" style="width: {{fluxPercent}}%; height: 100%; background: #3b82f6; transition: width 0.5s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. CIBLE ACTUELLE -->
+    {{#if target}}
+    <div class="target-box" style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px dashed #555; display: flex; align-items: center; gap: 10px;">
+        <img src="{{target.img}}" style="width: 30px; height: 30px; border-radius: 4px;">
+        <div style="flex: 1;">
+            <div style="font-size: 12px; color: #aaa;">Cible : <span style="color: #fff; font-weight: bold;">{{target.name}}</span></div>
+            <div style="font-size: 11px; color: #D97706;">CA (Défense) : {{target.ac}}</div>
+        </div>
+    </div>
+    {{else}}
+    <div class="target-box" style="text-align: center; font-size: 12px; color: #666; padding: 5px; border: 1px dashed #333;">
+        Aucune cible (Appuyez sur T)
+    </div>
+    {{/if}}
+
+    <!-- SI MORT : SAUVEGARDES -->
+    {{#if isDead}}
+    <div class="death-saves" style="text-align: center; padding: 10px; background: rgba(255,0,0,0.1); border: 1px solid #ef4444; border-radius: 5px;">
+        <h3 style="color: #ef4444; margin: 0 0 10px 0;">☠️ INCONSCIENT</h3>
+        <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 10px;">
+            <div>
+                <span style="color: #10b981;">Succès</span>
+                <div style="font-size: 20px;">
+                    {{#if (gt deathSaves.success 0)}}✅{{else}}⭕{{/if}}
+                    {{#if (gt deathSaves.success 1)}}✅{{else}}⭕{{/if}}
+                    {{#if (gt deathSaves.success 2)}}✅{{else}}⭕{{/if}}
+                </div>
+            </div>
+            <div>
+                <span style="color: #ef4444;">Échecs</span>
+                <div style="font-size: 20px;">
+                    {{#if (gt deathSaves.failure 0)}}❌{{else}}⭕{{/if}}
+                    {{#if (gt deathSaves.failure 1)}}❌{{else}}⭕{{/if}}
+                    {{#if (gt deathSaves.failure 2)}}❌{{else}}⭕{{/if}}
+                </div>
+            </div>
+        </div>
+        <button class="death-save-btn" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; width: 100%;">
+            Lancer Sauvegarde (d20)
+        </button>
+    </div>
+    {{else}}
+
+    <!-- 3. ACTIONS PRINCIPALES -->
+    <div class="actions-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        
+        <!-- ATTAQUE (ARMES) -->
+        <div class="action-column">
+            <h4 style="margin: 0 0 5px 0; color: #aaa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #333;">Attaque</h4>
+            {{#each weapons}}
+            <button class="action-btn" data-item-id="{{this.id}}" 
+                {{#if ../isParalyzed}}disabled style="opacity:0.5; cursor:not-allowed;"{{/if}}
+                style="display: flex; align-items: center; gap: 5px; width: 100%; background: #222; border: 1px solid #444; color: #fff; padding: 5px; margin-bottom: 5px; border-radius: 4px; cursor: pointer; text-align: left; transition: all 0.2s;">
+                <img src="{{this.img}}" style="width: 24px; height: 24px; border-radius: 2px;">
+                <div style="line-height: 1.2;">
+                    <div style="font-weight: bold; font-size: 12px;">{{this.name}}</div>
+                    <div style="font-size: 10px; color: #aaa;">{{this.system.damage.value}}</div>
+                </div>
+            </button>
+            {{else}}
+            <div style="font-size: 11px; color: #666; font-style: italic;">Mains nues (1d4)</div>
+            {{/each}}
+        </div>
+
+        <!-- MOUVEMENT & AUTRES -->
+        <div class="action-column">
+            <h4 style="margin: 0 0 5px 0; color: #aaa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #333;">Mouvement</h4>
+            <button class="move-btn" 
+                {{#if hasMoved}}disabled style="opacity:0.5; cursor:not-allowed;"{{/if}}
+                style="width: 100%; background: #222; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 4px; cursor: pointer; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-walking"></i> Se Déplacer</span>
+                <span style="font-size: 10px; background: #444; padding: 2px 5px; border-radius: 3px;">{{remainingMove}}m</span>
+            </button>
+
+            <!-- ACCESSOIRE RAPIDE -->
+            {{#if equippedAccessory}}
+            <h4 style="margin: 5px 0 5px 0; color: #aaa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #333;">Accessoire</h4>
+            <button class="use-item-btn" data-item-id="{{equippedAccessory.id}}"
+                {{#if hasActed}}disabled style="opacity:0.5;"{{/if}}
+                style="display: flex; align-items: center; gap: 5px; width: 100%; background: #222; border: 1px solid #D97706; color: #D97706; padding: 5px; border-radius: 4px; cursor: pointer;">
+                <img src="{{equippedAccessory.img}}" style="width: 24px; height: 24px;">
+                <span style="font-size: 12px; font-weight: bold;">{{equippedAccessory.name}}</span>
+            </button>
+            {{/if}}
+        </div>
+    </div>
+
+    <!-- 4. CONSOMMABLES (SCROLLABLE) -->
+    {{#if consumables.length}}
+    <div class="consumables-section" style="margin-top: 5px;">
+        <h4 style="margin: 0 0 5px 0; color: #aaa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #333;">Sacoche</h4>
+        <div style="display: flex; gap: 5px; overflow-x: auto; padding-bottom: 5px;">
+            {{#each consumables}}
+            <button class="use-item-btn" data-item-id="{{this.id}}" title="{{this.name}}"
+                {{#if ../hasActed}}disabled style="opacity:0.5;"{{/if}}
+                style="flex: 0 0 auto; width: 40px; height: 40px; padding: 0; border: 1px solid #444; border-radius: 4px; background: #222; cursor: pointer; position: relative;">
+                <img src="{{this.img}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 3px;">
+                <div style="position: absolute; bottom: 0; right: 0; width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: flex-end; pointer-events: none;">
+                    <div style="margin-bottom: 2px; right: 2px; background: rgba(0,0,0,0.8); color: #ccc; border-radius: 3px; font-size: 9px; padding: 0 3px; font-weight: bold;">
+                        {{this.system.quantity.value}}
+                    </div>
+                </div>
+            </button>
+            {{/each}}
+        </div>
+    </div>
+    {{/if}}
+
+    {{/if}} <!-- Fin du bloc vivant/mort -->
+
+    <!-- 5. BOUTON FIN DE TOUR (VISIBLE ET SANS POINTER-EVENTS: NONE) -->
+    <div style="padding-top: 10px; border-top: 1px solid #333; position: relative; z-index: 500;">
+        <button class="end-turn-btn {{#if isMyTurn}}end-turn-active{{/if}}" type="button"
+        {{#unless isMyTurn}}disabled{{/unless}}
+        style="width: 100%; padding: 12px; font-family: 'Cinzel', serif; font-weight: bold; font-size: 14px; border-radius: 4px; letter-spacing: 1px; transition: all 0.2s; pointer-events: auto;
+        background: {{#if isMyTurn}}linear-gradient(180deg, #10b981, #047857){{else}}#222{{/if}}; 
+        color: {{#if isMyTurn}}#ecfdf5{{else}}#666{{/if}}; 
+        border: 1px solid {{#if isMyTurn}}#059669{{else}}#444{{/if}};
+        cursor: {{#if isMyTurn}}pointer{{else}}default{{/if}};">
+            {{#if isMyTurn}}⏳ FIN DE TOUR{{else}}EN ATTENTE...{{/if}}
+        </button>
+    </div>
+
+    <!-- 6. ORDRE DU TOUR -->
+    <div class="turn-order" style="margin-top: 10px; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 4px; padding: 5px;">
+        {{#each turnOrder}}
+        <div class="turn-card {{this.cssClass}}" style="display: flex; align-items: center; gap: 8px; padding: 4px; border-bottom: 1px solid #333; opacity: {{#if this.isDead}}0.5{{else}}1{{/if}};">
+            <div style="font-weight: bold; color: #aaa; width: 20px; text-align: center;">{{this.initiative}}</div>
+            <img src="{{this.img}}" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid #555;">
+            <div style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: {{#if this.isCurrent}}#10b981{{else}}#ccc{{/if}};">
+                {{this.name}} {{#if this.isDead}}💀{{/if}}
+            </div>
+        </div>
+        {{/each}}
+    </div>
+
+</div>

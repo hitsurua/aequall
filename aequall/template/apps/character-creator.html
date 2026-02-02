@@ -1,0 +1,329 @@
+<div class="aequall-creator">
+    <header class="creator-header">
+        <h1><i class="fas fa-drafting-compass"></i> Cr&eacute;ation de Personnage</h1>
+        <div class="steps">
+            <span class="step {{#if (eq step 1)}}active{{/if}}">1. Identit&eacute;</span>
+            <span class="step {{#if (eq step 2)}}active{{/if}}">2. Origines</span>
+            <span class="step {{#if (eq step 3)}}active{{/if}}">3. Statistiques</span>
+            <span class="step {{#if (eq step 4)}}active{{/if}}">4. Destin&eacute;e</span>
+        </div>
+    </header>
+
+    <!-- STYLE SPECIFIQUE (Mode Compact & Sombre & Scrollable) -->
+    <style>
+        /* --- GESTION DU SCROLLBAR ET DU LAYOUT --- */
+        .aequall-creator {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Prend toute la hauteur de la fenêtre définie dans le JS */
+            overflow: hidden; /* Empêche la fenêtre entière de scroller */
+        }
+
+        .creator-header, .creator-footer {
+            flex: 0 0 auto; /* Ne rétrécit pas */
+        }
+
+        .creator-body {
+            flex: 1; /* Prend tout l'espace disponible au centre */
+            overflow-y: auto; /* Active le scroll vertical si le contenu dépasse */
+            padding-right: 5px; /* Petit espace pour ne pas coller à la barre */
+            margin-bottom: 10px;
+        }
+
+        /* --- STYLES EXISTANTS --- */
+        .selection-block { 
+            padding: 10px !important; 
+            margin-bottom: 10px !important;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border: 1px solid #333 !important;
+            border-radius: 4px !important;
+        }
+        .info-card { 
+            padding: 10px !important; 
+            font-size: 0.95em !important; 
+            line-height: 1.4 !important;
+            margin-top: 8px !important;
+            background: rgba(0, 0, 0, 0.4) !important;
+            border-left: 3px solid #D97706 !important;
+            color: #ccc !important;
+        }
+        .stat-container {
+            padding: 10px !important;
+            background: rgba(0,0,0,0.2) !important;
+            border: 1px solid #333 !important;
+            border-radius: 4px !important;
+        }
+        .stat-container.mastered {
+            border-color: #D97706 !important;
+            background: rgba(217, 119, 6, 0.1) !important;
+        }
+        select {
+            padding: 5px !important;
+            height: 30px !important;
+            background: #222 !important;
+            color: #fff !important;
+            border: 1px solid #555 !important;
+            font-size: 13px !important;
+            width: 100%;
+        }
+        input[type="text"], textarea {
+            background: #222 !important;
+            color: #fff !important;
+            border: 1px solid #555 !important;
+            padding: 8px !important;
+            width: 100%;
+        }
+        
+        .race-bonus-tag {
+            font-size: 0.8em;
+            color: #60a5fa;
+            margin-left: 5px;
+            font-weight: normal;
+        }
+        
+        .lore-text {
+            font-size: 0.9em;
+            color: #bbb;
+            margin-top: 5px;
+            line-height: 1.5;
+            text-align: justify;
+        }
+    </style>
+
+    <div class="creator-body">
+        <!-- ETAPE 1 : IDENTITE -->
+        {{#if (eq step 1)}}
+        <div class="step-content">
+            <div class="form-group">
+                <label>Nom du Personnage</label>
+                <!-- CORRECTIF : Utilisation de data.name pour l'édition en direct -->
+                <input type="text" name="name" value="{{data.name}}" placeholder="Ex: Taryn de la Faille">
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Concept (Courte description)</label>
+                <textarea name="concept" rows="3" placeholder="Un ancien garde d'All&eacute;gia qui a tout perdu...">{{data.concept}}</textarea>
+            </div>
+            <div class="lore-box info-card">
+                <h3 class="card-title" style="margin-top:0; color:#D97706;"><i class="fas fa-book-open"></i> Le Monde Fractur&eacute;</h3>
+                <!-- AJOUT LORE BIBLE -->
+                <div class="lore-text">
+                    <p>Quatre dieux ont cr&eacute;&eacute; le continent d'Aequall avant de le briser par leurs disputes : 
+                    <b>Curiosus</b> (Savoir), <b>Prudentia</b> (Sagesse), <b>Goloso</b> (Avidit&eacute;) et <b>Invidia</b> (Ambition).</p>
+                    <p>Le monde est d&eacute;sormais divis&eacute; en 7 Royaumes aux id&eacute;ologies extr&ecirc;mes, des cit&eacute;s de marbre d'All&eacute;gia o&ugrave; la magie est divine, aux forges infernales d'Avidia o&ugrave; la technologie r&egrave;gne. 
+                    Ici, le savoir justifie les risques et rien n'est gratuit.</p>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        <!-- ETAPE 2 : ORIGINES -->
+        {{#if (eq step 2)}}
+        <div class="step-content">
+            <!-- ROYAUME -->
+            <div class="selection-block">
+                <label>Royaume d'Origine</label>
+                <select name="kingdom">
+                    {{#each config.kingdoms}}
+                    <option value="{{@key}}" {{#if (eq @key ../data.kingdom)}}selected{{/if}}>{{this}}</option>
+                    {{/each}}
+                </select>
+                
+                <div class="info-card">
+                    {{{lookup config.kingdomLore data.kingdom}}}
+                </div>
+            </div>
+
+            <!-- PEUPLE -->
+            <div class="selection-block">
+                <label>Peuple</label>
+                <select name="race">
+                    {{#each config.races}}
+                    <option value="{{@key}}" {{#if (eq @key ../data.race)}}selected{{/if}}>{{this}}</option>
+                    {{/each}}
+                </select>
+                <div class="info-card">
+                    <p><b>Bonus :</b> {{lookup config.raceBonuses data.race}}</p>
+                </div>
+            </div>
+
+            <!-- VOCATION -->
+            <div class="selection-block">
+                <label>Vocation (Classe)</label>
+                <select name="vocation">
+                    {{#each config.vocations}}
+                        {{#unless (eq @key "Conducteur")}}
+                        <option value="{{@key}}" {{#if (eq @key ../data.vocation)}}selected{{/if}}>{{this}}</option>
+                        {{/unless}}
+                    {{/each}}
+                </select>
+                <div class="info-card">
+                    {{{lookup config.vocationLore data.vocation}}}
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        <!-- ETAPE 3 : STATISTIQUES -->
+        {{#if (eq step 3)}}
+        <div class="step-content">
+            <div style="text-align:center; margin-bottom:15px; font-weight:bold;">
+                Points restants : 
+                <span class="points-counter {{#if (gt pointsRemaining 0)}}green{{else}}red{{/if}}">{{pointsRemaining}}</span> / 3
+            </div>
+
+            <div class="stats-grid">
+                {{#each data.attributes as |attr key|}}
+                <div class="stat-container {{#if attr.isMastered}}mastered{{/if}}" data-key="{{key}}">
+                    <label style="display:block; font-weight:bold; margin-bottom:5px; color:{{#if attr.isMastered}}#fbbf24{{else}}#aaa{{/if}};">
+                        {{attr.label}}
+                        <!-- AJOUT : Affichage du Bonus Racial -->
+                        {{#if (gt attr.raceBonus 0)}}
+                            <span class="race-bonus-tag">(+{{attr.raceBonus}} Peuple)</span>
+                        {{/if}}
+                        {{#if attr.isMastered}}
+                            <i class="fas fa-star mastery-icon" style="float:right;" title="Ma&icirc;trise de Vocation (+2)"></i>
+                        {{/if}}
+                    </label>
+                    <div class="input-wrap" style="display:flex; justify-content:center; align-items:center; gap:10px;">
+                        <button type="button" data-action="dec" data-key="{{key}}" style="width:24px; height:24px; border-radius:50%; border:1px solid #555; background:#333; color:white; cursor:pointer;">-</button>
+                        <input type="text" value="{{attr.value}}" readonly style="width:40px; text-align:center; font-weight:bold; background:transparent; border:none; font-size:1.2em;">
+                        <button type="button" data-action="inc" data-key="{{key}}" style="width:24px; height:24px; border-radius:50%; border:1px solid #555; background:#333; color:white; cursor:pointer;">+</button>
+                    </div>
+                    <div style="text-align:center; font-size:11px; color:#888; margin-top:5px;">
+                        Total : <b>{{attr.displayTotal}}</b>
+                    </div>
+                </div>
+                {{/each}}
+            </div>
+
+            <div class="selection-block" style="margin-top:20px;">
+                <label>Qualit&eacute;s (Avantages)</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <select name="q1">
+                            {{#each config.qualities}}
+                            <option value="{{@key}}" {{#if (eq @key ../data.q1)}}selected{{/if}}>{{this.label}}</option>
+                            {{/each}}
+                        </select>
+                        <div style="font-size:11px; color:#10b981; font-style:italic; margin-top:5px; min-height:20px;">
+                            {{lookup (lookup config.qualities data.q1) 'effect'}}
+                        </div>
+                    </div>
+                    <div>
+                        <select name="q2">
+                            {{#each config.qualities}}
+                            <option value="{{@key}}" {{#if (eq @key ../data.q2)}}selected{{/if}}>{{this.label}}</option>
+                            {{/each}}
+                        </select>
+                        <div style="font-size:11px; color:#10b981; font-style:italic; margin-top:5px; min-height:20px;">
+                            {{lookup (lookup config.qualities data.q2) 'effect'}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="selection-block">
+                <label>D&eacute;fauts (Inconv&eacute;nients)</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div>
+                        <select name="d1">
+                            {{#each config.flaws}}
+                            <option value="{{@key}}" {{#if (eq @key ../data.d1)}}selected{{/if}}>{{this.label}}</option>
+                            {{/each}}
+                        </select>
+                        <div style="font-size:11px; color:#ef4444; font-style:italic; margin-top:5px; min-height:20px;">
+                            {{lookup (lookup config.flaws data.d1) 'effect'}}
+                        </div>
+                    </div>
+                    <div>
+                        <select name="d2">
+                            {{#each config.flaws}}
+                            <option value="{{@key}}" {{#if (eq @key ../data.d2)}}selected{{/if}}>{{this.label}}</option>
+                            {{/each}}
+                        </select>
+                        <div style="font-size:11px; color:#ef4444; font-style:italic; margin-top:5px; min-height:20px;">
+                            {{lookup (lookup config.flaws data.d2) 'effect'}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{/if}}
+
+        <!-- ETAPE 4 : DESTINEE -->
+        {{#if (eq step 4)}}
+        <div class="step-content">
+            <div class="info-card">
+                <h3 class="card-title" style="color:#D97706; border-bottom:1px solid #444; padding-bottom:5px; margin-top:0;">R&eacute;sum&eacute; Final</h3>
+                
+                <div class="summary-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.9em; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #444;">
+                    <div><strong>Nom :</strong> {{data.name}}</div>
+                    <div><strong>Peuple :</strong> {{data.race}}</div>
+                    <div><strong>Vocation :</strong> {{data.vocation}}</div>
+                    <div><strong>Royaume :</strong> {{data.kingdom}}</div>
+                </div>
+                
+                <div class="summary-stats" style="display: flex; justify-content: space-around; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 4px; margin-bottom: 10px; font-size: 0.9em;">
+                    <span title="Curiosit&eacute;">CUR: <b style="color: #fff;">{{data.attributes.cur.displayTotal}}</b></span>
+                    <span title="Prudence">PRU: <b style="color: #fff;">{{data.attributes.pru.displayTotal}}</b></span>
+                    <span title="Avidit&eacute;">AVI: <b style="color: #fff;">{{data.attributes.avi.displayTotal}}</b></span>
+                    <span title="Envie">ENV: <b style="color: #fff;">{{data.attributes.env.displayTotal}}</b></span>
+                </div>
+
+                <ul style="font-size: 0.9em; margin-bottom: 10px; padding-left: 20px;">
+                    <li><b>PV Max :</b> {{derived.hp}}</li>
+                    <li><b>Initiative :</b> {{derived.init}}</li>
+                    <li><b>D&eacute;fense :</b> {{derived.def}}</li>
+                </ul>
+
+                <div class="summary-traits" style="font-size: 0.85em; border-top: 1px solid #444; padding-top: 8px;">
+                    <div style="margin-bottom: 4px;">
+                        <strong style="color:#10b981;">Qualit&eacute;s :</strong> 
+                        {{lookup (lookup config.qualities data.q1) 'label'}}, 
+                        {{lookup (lookup config.qualities data.q2) 'label'}}
+                    </div>
+                    <div>
+                        <strong style="color:#ef4444;">D&eacute;fauts :</strong> 
+                        {{lookup (lookup config.flaws data.d1) 'label'}}, 
+                        {{lookup (lookup config.flaws data.d2) 'label'}}
+                    </div>
+                </div>
+            </div>
+
+            <div class="selection-block {{#if isConducteur}}mastered{{/if}}">
+                <h3 style="margin-top:0;"><i class="fas fa-bolt"></i> Le Secret de l'&Acirc;me</h3>
+                
+                {{#if hasRolledSecret}}
+                    <!-- RESULTAT DU JET -->
+                    <div class="result" style="text-align:center; font-weight:bold; padding:10px; border-radius:4px; background:rgba(0,0,0,0.3);">
+                        {{#if isConducteur}}
+                            <div class="secret-desc" style="font-size:0.9em; color:#aaa; margin-bottom:10px; font-weight:normal; font-style:italic;">
+                                Les seuls &ecirc;tres capables de lancer des sorts sans batterie. Traqu&eacute;s &agrave; Latentia, esclaves &agrave; Avidia.
+                            </div>
+                            <span style="color:#60a5fa;"><i class="fas fa-check"></i> OUI ! Vous &ecirc;tes un Conducteur.</span>
+                            <p style="font-size:0.8em; color:#ef4444; margin-top:5px;">Votre sang est du carburant. Cachez vos marques bleues ou la Guilde vous trouvera.</p>
+                        {{else}}
+                            <span style="color:#aaa;">Non. Votre &acirc;me est stable.</span>
+                        {{/if}}
+                    </div>
+                {{else}}
+                    <!-- AVANT LE JET -->
+                    <p style="margin-bottom:10px;">&Ecirc;tes-vous un <b>Conducteur</b> ? (1% de chance)</p>
+                    <!-- CORRECTIF : data-action ajouté pour le listener -->
+                    <button type="button" data-action="rollSecret" class="roll-secret-btn" style="width:100%; padding:10px; cursor:pointer; background:#444; color:#fff; border:1px solid #666; border-radius:4px;"><i class="fas fa-dice"></i> Tester le Destin (d100)</button>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
+    </div>
+
+    <footer class="creator-footer">
+        {{#if isCreated}}
+            <!-- MODIFICATION : Bouton vert pour voir la fiche après création -->
+            <button type="button" data-action="openSheet" class="finish primary" style="background: #10b981; width: 100%;"><i class="fas fa-id-card"></i> Voir la Fiche Personnage</button>
+        {{else}}
+            {{#if (gt step 1)}}<button type="button" data-action="prev">Pr&eacute;c&eacute;dent</button>{{else}}<div></div>{{/if}}
+            {{#if (lt step 4)}}<button type="button" data-action="next" class="primary">Suivant</button>{{else}}<button type="button" data-action="submit" class="finish primary"><i class="fas fa-check"></i> Cr&eacute;er le Personnage</button>{{/if}}
+        {{/if}}
+    </footer>
+</div>

@@ -1,0 +1,172 @@
+<div class="fracture-game-window" style="display: flex; gap: 10px; height: 100%; background: #1a1a1a; color: #e0e0e0; font-family: 'Signika', sans-serif; padding: 10px; border-radius: 8px;">
+
+    <!-- PARTIE GAUCHE : LE JEU -->
+    <div class="game-area" style="flex: 2; display: flex; flex-direction: column; gap: 15px;">
+        
+        <h1 style="font-family: 'Cinzel', serif; text-align: center; color: #D97706; margin: 0; font-size: 24px; border-bottom: 2px solid #444; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 2px;">
+            <i class="fas fa-dice"></i> La Scission
+        </h1>
+
+        <!-- 1. PHASE DE MISE -->
+        {{#if (eq gameState "betting")}}
+        <div class="phase-box betting" style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px dashed #555;">
+            <p style="font-size: 16px; color: #ccc; margin-bottom: 20px;">Combien posez-vous sur la table ?</p>
+            
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <label style="font-weight: bold; color: #D97706; font-size: 18px;">MISE (PO) :</label>
+                <!-- Input débloqué pour permettre le changement de mise -->
+                <input type="number" id="bet-amount" value="{{betAmount}}" min="1" style="width: 100px; text-align: center; background: #222; color: #fff; border: 2px solid #D97706; border-radius: 5px; padding: 8px; font-size: 20px; font-weight: bold;">
+            </div>
+            
+            <div style="font-size: 13px; color: #888; margin-bottom: 20px;">
+                {{#if hasActor}}
+                    <i class="fas fa-coins"></i> Votre bourse : <strong style="color: {{#if canAfford}}#10b981{{else}}#ef4444{{/if}}">{{currentGold}} PO</strong>
+                {{else}}
+                    <span style="color:#ef4444"><i class="fas fa-exclamation-triangle"></i> Aucun personnage sélectionné</span>
+                {{/if}}
+            </div>
+
+            {{#if canAfford}}
+            <button id="start-game" style="background: linear-gradient(180deg, #d97706, #b45309); color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 0 #92400e; font-family: 'Cinzel', serif; transition: transform 0.1s;">
+                JETER LES DÉS
+            </button>
+            {{else}}
+            <button disabled style="background: #444; color: #888; border: none; padding: 12px 30px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: not-allowed;">
+                PAS ASSEZ D'OR
+            </button>
+            {{/if}}
+
+            <button id="invite-players" style="margin-top: 15px; background: transparent; color: #666; border: 1px solid #444; padding: 5px 15px; font-size: 12px; border-radius: 20px; cursor: pointer; transition: color 0.3s;">
+                <i class="fas fa-bullhorn"></i> Inviter à la table
+            </button>
+        </div>
+        {{/if}}
+
+        <!-- 2. PHASE DE JEU & RÉSULTAT -->
+        {{#if (or (eq gameState "playing") (eq gameState "finished"))}}
+        
+        <!-- Barre d'infos tactiques -->
+        <div style="display: flex; justify-content: space-between; background: #222; padding: 8px 15px; border-radius: 5px; border: 1px solid #444; font-size: 14px;">
+            <span>Mise : <span style="color:#D97706; font-weight:bold;">{{betAmount}} PO</span></span>
+            <span>Lancers : <span style="color:#60a5fa; font-weight:bold;">{{rollCount}} / 3</span></span>
+        </div>
+
+        <!-- Zone du tapis de jeu -->
+        <div class="dice-mat" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 15px; background: #0f392b; border-radius: 10px; box-shadow: inset 0 0 20px black; border: 4px solid #4a3b2a; padding: 20px; position: relative; overflow: hidden;">
+            {{#each dice}}
+            <div class="die-container" style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                <!-- Le Dé visuel -->
+                <div class="die-visual" data-index="{{@index}}" style="
+                    width: 70px; height: 70px; 
+                    background: {{#if (eq this.val 5)}}radial-gradient(circle at 30% 30%, #ef4444, #991b1b){{else}}radial-gradient(circle at 30% 30%, #fff, #ccc){{/if}}; 
+                    color: {{#if (eq this.val 5)}}#fee2e2{{else}}#111{{/if}}; 
+                    border-radius: 12px; 
+                    display: flex; align-items: center; justify-content: center; 
+                    font-size: 36px; font-weight: bold; 
+                    cursor: {{#if (eq ../gameState "finished")}}default{{else}}pointer{{/if}}; 
+                    box-shadow: {{#if this.kept}}0 0 0 4px #10b981, 0 10px 15px rgba(0,0,0,0.5){{else}}0 5px 10px rgba(0,0,0,0.4){{/if}};
+                    border: 1px solid rgba(0,0,0,0.2);
+                    transform: {{#if this.kept}}translateY(-2px){{else}}none{{/if}};
+                    transition: all 0.2s;
+                    position: relative;
+                ">
+                    <!-- Icones FontAwesome pour les faces -->
+                    {{#if (eq this.val 1)}}<i class="fas fa-dice-one"></i>{{/if}}
+                    {{#if (eq this.val 2)}}<i class="fas fa-dice-two"></i>{{/if}}
+                    {{#if (eq this.val 3)}}<i class="fas fa-dice-three"></i>{{/if}}
+                    {{#if (eq this.val 4)}}<i class="fas fa-dice-four"></i>{{/if}}
+                    {{#if (eq this.val 5)}}<i class="fas fa-biohazard"></i>{{/if}}
+                    {{#if (eq this.val 6)}}<i class="fas fa-dice-six"></i>{{/if}}
+                    
+                    {{#if (eq this.val 5)}}<span style="position:absolute; font-size:10px; bottom:2px; color:rgba(255,255,255,0.8);">FLUX</span>{{/if}}
+                </div>
+                
+                <div style="height: 15px; font-size: 11px; font-weight: bold; color: #10b981; visibility: {{#if this.kept}}visible{{else}}hidden{{/if}};">GARDÉ</div>
+            </div>
+            {{/each}}
+        </div>
+
+        <!-- Contrôles en cours de jeu -->
+        {{#if (eq gameState "playing")}}
+        <div class="actions" style="display: flex; gap: 10px;">
+            {{#if canReroll}}
+            <button id="roll-dice" style="flex: 2; background: linear-gradient(180deg, #2563eb, #1e40af); color: white; border: 1px solid #1e3a8a; padding: 12px; font-weight: bold; font-family: 'Cinzel', serif; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 0 #1e3a8a;">
+                <i class="fas fa-sync-alt"></i> RELANCER
+            </button>
+            <button id="stop-roll" style="flex: 1; background: #374151; color: #e5e7eb; border: 1px solid #4b5563; padding: 12px; font-weight: bold; border-radius: 5px; cursor: pointer;">
+                STOP
+            </button>
+            {{else}}
+             <button id="stop-roll" style="flex: 1; background: #D97706; color: white; border: 1px solid #b45309; padding: 12px; font-weight: bold; border-radius: 5px; cursor: pointer;">
+                TERMINER
+            </button>
+            {{/if}}
+        </div>
+        {{/if}}
+
+        <!-- Panneau de Résultat Final -->
+        {{#if (eq gameState "finished")}}
+        <div class="result-panel" style="background: rgba(0,0,0,0.5); border: 2px solid {{#if (eq resultClass 'win')}}#10b981{{else}}{{#if (eq resultClass 'loss')}}#ef4444{{else}}#aaa{{/if}}{{/if}}; border-radius: 8px; padding: 15px; text-align: center; animation: fadeIn 0.5s;">
+            <h2 style="margin: 0; color: {{#if (eq resultClass 'win')}}#10b981{{else}}{{#if (eq resultClass 'loss')}}#ef4444{{else}}#fff{{/if}}{{/if}}; font-family: 'Cinzel', serif; font-size: 26px; text-transform: uppercase;">
+                {{handName}}
+            </h2>
+            <p style="font-style: italic; color: #ccc; margin: 5px 0 15px 0;">{{handDesc}}</p>
+            
+            <div style="background: #111; padding: 10px; border-radius: 5px; display: inline-block; margin-bottom: 15px; min-width: 150px;">
+                {{#if (gt totalGain 0)}}
+                    <span style="color: #fbbf24; font-size: 20px; font-weight: bold;">+{{totalGain}} PO 💰</span>
+                {{else if (lt totalGain 0)}}
+                    <span style="color: #ef4444; font-size: 20px; font-weight: bold;">{{totalGain}} PO 💸</span>
+                {{else}}
+                    <span style="color: #aaa; font-size: 20px; font-weight: bold;">Remboursé</span>
+                {{/if}}
+            </div>
+            
+            <br>
+            <button id="reset-game" style="background: #444; color: white; border: 1px solid #666; padding: 8px 25px; cursor: pointer; border-radius: 4px; font-weight: bold;">
+                <i class="fas fa-redo"></i> Rejouer
+            </button>
+        </div>
+        {{/if}}
+
+        {{/if}}
+    </div>
+
+    <!-- PARTIE DROITE : SIDEBAR D'AIDE -->
+    <div class="help-sidebar" style="flex: 1; background: rgba(255, 255, 255, 0.05); border-left: 2px solid #444; padding-left: 10px; display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+        <h3 style="text-align: center; color: #aaa; font-family: 'Cinzel', serif; border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 0;">Mains Gagnantes</h3>
+        
+        <div class="hand-row" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <span style="color: #fbbf24; font-weight: bold;">Harmonie</span>
+            <span>x5</span>
+        </div>
+        <div style="font-size: 10px; color: #888; font-style: italic; margin-top: -5px; margin-bottom: 5px;">Quatre "6"</div>
+
+        <div class="hand-row" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <span style="color: #f59e0b; font-weight: bold;">Panthéon</span>
+            <span>x3</span>
+        </div>
+        <div style="font-size: 10px; color: #888; font-style: italic; margin-top: -5px; margin-bottom: 5px;">4 Identiques</div>
+
+        <div class="hand-row" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <span style="color: #d97706; font-weight: bold;">Fracture</span>
+            <span>x2</span>
+        </div>
+        <div style="font-size: 10px; color: #888; font-style: italic; margin-top: -5px; margin-bottom: 5px;">Suite (1-2-3-4)</div>
+
+        <div class="hand-row" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <span style="color: #b45309; font-weight: bold;">Triumvirat</span>
+            <span>x1</span>
+        </div>
+        <div style="font-size: 10px; color: #888; font-style: italic; margin-top: -5px; margin-bottom: 5px;">3 Identiques</div>
+
+        <div class="hand-row" style="margin-top: 15px; border: 1px solid #ef4444; padding: 5px; border-radius: 4px; background: rgba(239, 68, 68, 0.1);">
+            <div style="color: #ef4444; font-weight: bold; text-align: center; margin-bottom: 2px;">⚠️ SURCHARGE</div>
+            <div style="font-size: 10px; text-align: center; color: #fca5a5;">Trois "5" = Perte Double</div>
+        </div>
+
+        <div class="hand-row" style="margin-top: 5px; text-align: center; color: #aaa; font-style: italic;">
+            <p>Note : Le chiffre <strong>5</strong> (Flux) vaut 0 point en dehors des Surcharges.</p>
+        </div>
+    </div>
+</div>
