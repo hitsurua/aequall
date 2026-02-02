@@ -245,7 +245,6 @@ export class MerchantApp extends HandlebarsApplicationMixin(ApplicationV2) {
                         itemUuid: data.uuid,
                         priceModifier: this.priceModifier
                     });
-                    ui.notifications.info("Vente demandée au MJ...");
                     return;
                 }
 
@@ -321,7 +320,6 @@ export class MerchantApp extends HandlebarsApplicationMixin(ApplicationV2) {
                         itemId: btn.data("item-id"),
                         priceModifier: this.priceModifier
                     });
-                    ui.notifications.info("Achat demandé au MJ...");
                     // On réactive le bouton au prochain render (updates propagées)
                     setTimeout(() => this.render({ force: true }), 600);
                     return;

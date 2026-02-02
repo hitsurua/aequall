@@ -14,8 +14,8 @@ export class AequallActorSheet extends ActorSheet {
     });
   }
 
-  getData() {
-    const context = super.getData();
+  async getData() {
+    const context = await super.getData();
     context.system = context.actor.system;
 
     // Utilitaire clamp (en v13, clamp est sous primitives.Math.clamp; évite la casse d'API)
@@ -67,13 +67,15 @@ export class AequallActorSheet extends ActorSheet {
     });
     context.pointsAvailable = 3 - totalAttr; 
 
-    // Gestion de l'équipement (slots)
+    // Gestion de l'équipement (slots) - UUIDs stables
     const eq = context.system.equipment || {};
-    context.equipped = {
-        weapon: eq.weapon ? context.actor.items.get(eq.weapon) : null,
-        armor: eq.armor ? context.actor.items.get(eq.armor) : null,
-        accessory: eq.accessory ? context.actor.items.get(eq.accessory) : null
-    };
+    const [weapon, armor, accessory] = await Promise.all([
+      this._resolveEquippedItem(eq.weapon),
+      this._resolveEquippedItem(eq.armor),
+      this._resolveEquippedItem(eq.accessory)
+    ]);
+    context.equipped = { weapon, armor, accessory };
+    await this._migrateEquipmentUuid(eq, context.equipped);
 
     // Calcul Encombrement
     context.totalWeight = context.system.details.weight || 0;
@@ -152,7 +154,16 @@ export class AequallActorSheet extends ActorSheet {
         }
         if (!owned) return ui.notifications.error("Impossible d'équiper cet objet.");
 
-        await this.actor.update({ [`system.equipment.${slot}`]: owned.id });
+        const allowed = {
+          weapon: ["weapon"],
+          armor: ["armor"],
+          accessory: ["item", "feature"]
+        };
+        if (!allowed[slot]?.includes(owned.type)) {
+          return ui.notifications.warn("Cet objet n'est pas compatible avec ce slot.");
+        }
+
+        await this.actor.update({ [`system.equipment.${slot}`]: owned.uuid });
         this.render(false);
       });
 
@@ -290,8 +301,8 @@ export class AequallActorSheet extends ActorSheet {
     const dataset = event.currentTarget.dataset;
     if (dataset.roll) {
       let roll = new Roll(dataset.roll, this.actor.getRollData());
-      await roll.roll();
-      roll.toMessage({ 
+      await roll.evaluate();
+      await roll.toMessage({ 
           speaker: ChatMessage.getSpeaker({ actor: this.actor }), 
           flavor: `<span style="color:#D97706; font-weight:bold;">${dataset.label || 'Action'}</span>` 
       });
@@ -449,33 +460,23 @@ export class AequallActorSheet extends ActorSheet {
       let dmgRoll = null;
       let dmgTotal = 0;
 
+      await atkRoll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        flavor: `<strong>${actor.name}</strong> attaque avec <strong>${item.name}</strong> (${action.pillar.toUpperCase()}) vs Défense ${def} → ${hit ? "<span style='color:#10b981'><b>TOUCHÉ</b></span>" : "<span style='color:#ef4444'><b>ÉCHEC</b></span>"}`
+      });
+
       if (hit && action.formula) {
         dmgRoll = await (new Roll(action.formula, actor.getRollData())).evaluate();
         dmgTotal = Number(dmgRoll.total ?? 0);
+        await dmgRoll.toMessage({
+          speaker: ChatMessage.getSpeaker({ actor }),
+          flavor: `<strong>Dégâts</strong> (${item.name}) → ${targetActor.name}`
+        });
       }
-
-      // Message chat
-      await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor }),
-        content: `
-          <div class="aequall-chat-card">
-            <h3>${actor.name} — ${item.name}</h3>
-            <div><b>Attaque (${action.pillar.toUpperCase()})</b> : ${atkRoll.total} vs Défense ${def} → ${hit ? "<span style='color:#10b981'><b>TOUCHÉ</b></span>" : "<span style='color:#ef4444'><b>ÉCHEC</b></span>"}</div>
-            ${hit ? `<div><b>Dégâts</b> : ${dmgTotal}${dmgRoll ? ` <span style="color:#aaa">(${action.formula})</span>` : ""}</div>` : ""}
-          </div>`
-      });
 
       // Appliquer dégâts si possible
       if (hit && dmgTotal > 0) {
-        try {
-          const hpPath = "system.attributes.hp.value";
-          const curHP = Number(targetActor.system?.attributes?.hp?.value ?? 0);
-          const newHP = Math.max(0, curHP - dmgTotal);
-          await targetActor.update({ [hpPath]: newHP });
-        } catch (e) {
-          console.warn(e);
-          ui.notifications.warn("Impossible d'appliquer les dégâts automatiquement (permissions). MJ requis.");
-        }
+        await this._applyHpDelta(targetActor, -dmgTotal, { sourceActor: actor, item });
       }
 
       await this._consumeItemIfNeeded(item, action);
@@ -492,25 +493,12 @@ export class AequallActorSheet extends ActorSheet {
       const healRoll = await (new Roll(action.formula, actor.getRollData())).evaluate();
       const healTotal = Number(healRoll.total ?? 0);
 
-      await ChatMessage.create({
+      await healRoll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor }),
-        content: `
-          <div class="aequall-chat-card">
-            <h3>${actor.name} utilise ${item.name}</h3>
-            <div><b>Soin</b> : ${healTotal} <span style="color:#aaa">(${action.formula})</span> → <b>${healTarget.name}</b></div>
-          </div>`
+        flavor: `<strong>${actor.name}</strong> soigne <strong>${healTarget.name}</strong> avec <strong>${item.name}</strong>`
       });
 
-      try {
-        const hpPath = "system.attributes.hp.value";
-        const curHP = Number(healTarget.system?.attributes?.hp?.value ?? 0);
-        const maxHP = Number(healTarget.system?.attributes?.hp?.max ?? curHP + healTotal);
-        const newHP = Math.min(maxHP, curHP + healTotal);
-        await healTarget.update({ [hpPath]: newHP });
-      } catch (e) {
-        console.warn(e);
-        ui.notifications.warn("Impossible d'appliquer le soin automatiquement (permissions). MJ requis.");
-      }
+      await this._applyHpDelta(healTarget, healTotal, { sourceActor: actor, item });
 
       await this._consumeItemIfNeeded(item, action);
       return;
@@ -521,9 +509,9 @@ export class AequallActorSheet extends ActorSheet {
       try { await action.macro.execute(); } catch (e) { console.error(e); }
     } else if (action.formula) {
       const roll = await (new Roll(action.formula, actor.getRollData())).evaluate();
-      await ChatMessage.create({
+      await roll.toMessage({
         speaker: ChatMessage.getSpeaker({ actor }),
-        content: `<div class="aequall-chat-card"><h3>${actor.name} utilise ${item.name}</h3><div>Résultat : <b>${roll.total}</b> <span style="color:#aaa">(${action.formula})</span></div></div>`
+        flavor: `<strong>${actor.name}</strong> utilise <strong>${item.name}</strong>`
       });
     } else {
       await ChatMessage.create({
@@ -553,6 +541,63 @@ export class AequallActorSheet extends ActorSheet {
     } catch (e) {
       console.warn(e);
     }
+  }
+
+  async _resolveEquippedItem(ref) {
+    if (!ref) return null;
+    const owned = this.actor.items.get(ref);
+    if (owned) return owned;
+    if (this._isUuid(ref)) {
+      const doc = await fromUuid(ref);
+      if (doc?.parent?.id === this.actor.id) return doc;
+    }
+    return null;
+  }
+
+  async _migrateEquipmentUuid(eq, equipped) {
+    if (!this.actor.isOwner) return;
+    const updates = {};
+    for (const [slot, item] of Object.entries(equipped)) {
+      const current = eq?.[slot];
+      if (!item || !current) continue;
+      if (this._isUuid(current)) continue;
+      updates[`system.equipment.${slot}`] = item.uuid;
+    }
+    if (Object.keys(updates).length) {
+      await this.actor.update(updates);
+    }
+  }
+
+  _isUuid(value) {
+    return Boolean(value && foundry.utils?.isUuid?.(value));
+  }
+
+  async _applyHpDelta(targetActor, delta, { sourceActor, item } = {}) {
+    if (!targetActor || !Number.isFinite(delta) || delta === 0) return;
+    const hpPath = "system.attributes.hp.value";
+    const curHP = Number(targetActor.system?.attributes?.hp?.value ?? 0);
+    const maxHP = Number(targetActor.system?.attributes?.hp?.max ?? curHP);
+    const clamp = foundry.utils?.clamp ?? ((n, min, max) => Math.min(max, Math.max(min, n)));
+    const newHP = clamp(curHP + delta, 0, maxHP);
+
+    if (game.user.isGM) {
+      await targetActor.update({ [hpPath]: newHP });
+      return;
+    }
+
+    if (!sourceActor?.uuid) {
+      ui.notifications.warn("Impossible d'appliquer automatiquement (source inconnue).");
+      return;
+    }
+
+    game.socket.emit("system.aequall", {
+      type: "hp:adjust",
+      userId: game.user.id,
+      sourceActorUuid: sourceActor.uuid,
+      targetActorUuid: targetActor.uuid,
+      delta,
+      itemName: item?.name || ""
+    });
   }
 
   async _showItemInfo(item) {

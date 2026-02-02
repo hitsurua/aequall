@@ -57,7 +57,7 @@ export class AequallActor extends Actor {
         // Bonus d'Armure (si un objet est équipé dans le slot 'armor')
         const armorId = data.equipment?.armor;
         if (armorId) {
-            const item = this.items.get(armorId);
+            const item = this._resolveEquippedItem(armorId);
             if (item && item.type === 'armor') {
                 defenseTotal += (Number(item.system.ac.value) || 0);
             }
@@ -73,5 +73,16 @@ export class AequallActor extends Actor {
             totalWeight += (qty * w);
         });
         data.details.weight = Math.round(totalWeight * 100) / 100; // Arrondi 2 décimales
+    }
+
+    _resolveEquippedItem(ref) {
+        if (!ref) return null;
+        const owned = this.items.get(ref);
+        if (owned) return owned;
+        if (foundry.utils?.isUuid?.(ref) && typeof fromUuidSync === "function") {
+            const doc = fromUuidSync(ref);
+            if (doc?.parent?.id === this.id) return doc;
+        }
+        return null;
     }
 }

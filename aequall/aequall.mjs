@@ -157,6 +157,25 @@ Hooks.once("ready", () => {
         if (!game.user.isGM) return;
         if (payload?.type?.startsWith("merchant:")) {
             await MerchantApp.handleSocket(payload);
+            return;
+        }
+        if (payload?.type === "hp:adjust") {
+            const user = game.users.get(payload.userId);
+            if (!user) return;
+            const sourceActor = payload.sourceActorUuid ? await fromUuid(payload.sourceActorUuid) : null;
+            const targetActor = payload.targetActorUuid ? await fromUuid(payload.targetActorUuid) : null;
+            if (!sourceActor || !targetActor) return;
+            if (!sourceActor.testUserPermission(user, "OWNER")) return;
+
+            const delta = Number(payload.delta ?? 0);
+            if (!Number.isFinite(delta) || delta === 0) return;
+
+            const hpPath = "system.attributes.hp.value";
+            const curHP = Number(targetActor.system?.attributes?.hp?.value ?? 0);
+            const maxHP = Number(targetActor.system?.attributes?.hp?.max ?? curHP);
+            const clamp = foundry.utils?.clamp ?? ((n, min, max) => Math.min(max, Math.max(min, n)));
+            const newHP = clamp(curHP + delta, 0, maxHP);
+            await targetActor.update({ [hpPath]: newHP });
         }
     });
 });
